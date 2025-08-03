@@ -121,7 +121,15 @@ export function TripCard({
               <span className="text-sm font-medium text-muted-foreground">
                 #{trip.id}
               </span>
-              <Badge variant={getStatusColor(trip.status) as any}>
+              <Badge
+                variant={
+                  getStatusColor(trip.status) as
+                    | "default"
+                    | "secondary"
+                    | "destructive"
+                    | "outline"
+                }
+              >
                 {getStatusText(trip.status)}
               </Badge>
             </div>
@@ -243,7 +251,13 @@ export function TripCard({
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Status:</span>
                         <Badge
-                          variant={getStatusColor(trip.status) as any}
+                          variant={
+                            getStatusColor(trip.status) as
+                              | "default"
+                              | "secondary"
+                              | "destructive"
+                              | "outline"
+                          }
                           className="text-xs"
                         >
                           {getStatusText(trip.status)}

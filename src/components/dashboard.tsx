@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { UserRole, TripStatus, type Trip, type User } from "@/types";
 import { DashboardHeader } from "./DashboardHeader";
 import { StatsCards } from "./StatsCards";
@@ -29,17 +29,12 @@ const users: User[] = [
 export default function Dashboard() {
   const [currentRole, setCurrentRole] = useState<UserRole>(UserRole.DRIVER);
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const currentUser =
     users.find((user) => user.role === currentRole) || users[0];
 
-  // Fetch trips when role changes
-  useEffect(() => {
-    fetchTrips();
-  }, [currentRole]);
-
-  const fetchTrips = async () => {
+  const fetchTrips = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -61,7 +56,12 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentRole, currentUser.id, setLoading]);
+
+  // Fetch trips when role changes
+  useEffect(() => {
+    fetchTrips();
+  }, [fetchTrips]);
 
   const handleStatusUpdate = async (tripId: string, newStatus: TripStatus) => {
     try {

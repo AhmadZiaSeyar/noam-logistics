@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ProofOfDelivery } from "@/types";
 
 // Mock storage for proof of delivery - simulating file upload for the challenge
-const mockProofOfDelivery: any[] = [];
+const mockProofOfDelivery: ProofOfDelivery[] = [];
 
 export async function POST(request: NextRequest) {
   try {
