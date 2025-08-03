@@ -43,13 +43,13 @@ const mockTrips = [
     destination: "Detroit, MI",
     cargoType: "Medical Supplies",
     status: TripStatus.DELIVERED,
-    driverId: "2",
+    driverId: "1",
     createdAt: new Date("2024-01-13T09:15:00Z"),
     updatedAt: new Date("2024-01-13T16:45:00Z"),
     driver: {
-      id: "2",
-      name: "Sarah Johnson",
-      email: "sarah.driver@noam.com",
+      id: "1",
+      name: "John Smith",
+      email: "john.driver@noam.com",
       role: UserRole.DRIVER,
     },
     proofOfDelivery: [

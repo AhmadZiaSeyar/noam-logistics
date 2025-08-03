@@ -16,7 +16,6 @@ import {
   MapPin,
   Package,
   User,
-  Calendar,
   Camera,
   ChevronRight,
 } from "lucide-react";
@@ -114,249 +113,253 @@ export function TripCard({
 
   return (
     <div className="border-b border-border last:border-b-0">
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value={trip.id} className="border-none">
-          <AccordionTrigger className="hover:no-underline px-6 py-4">
-            <div className="flex items-center justify-between w-full mr-4">
-              {/* Compact Trip Summary */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    #{trip.id}
-                  </span>
-                  <Badge variant={getStatusColor(trip.status) as any}>
-                    {getStatusText(trip.status)}
-                  </Badge>
-                </div>
+      <div className="px-6 py-4">
+        {/* Compact Trip Summary Row */}
+        <div className="flex items-center justify-between w-full mb-2">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                #{trip.id}
+              </span>
+              <Badge variant={getStatusColor(trip.status) as any}>
+                {getStatusText(trip.status)}
+              </Badge>
+            </div>
 
-                <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="font-medium">{trip.origin}</span>
-                  <ChevronRight className="h-3 w-3" />
-                  <span className="font-medium">{trip.destination}</span>
-                </div>
+            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              <span className="font-medium">{trip.origin}</span>
+              <ChevronRight className="h-3 w-3" />
+              <span className="font-medium">{trip.destination}</span>
+            </div>
 
-                <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                  <Package className="h-4 w-4" />
-                  <span>{trip.cargoType}</span>
-                </div>
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+              <Package className="h-4 w-4" />
+              <span>{trip.cargoType}</span>
+            </div>
 
-                <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="h-4 w-4" />
-                  <span>{trip.driver.name}</span>
-                </div>
+            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>{trip.driver.name}</span>
+            </div>
 
-                {trip.proofOfDelivery.length > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                    <Camera className="h-3 w-3" />
-                    <span>POD</span>
-                  </div>
-                )}
+            {trip.proofOfDelivery.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                <Camera className="h-3 w-3" />
+                <span>POD</span>
               </div>
+            )}
+          </div>
 
-              {/* Action Buttons */}
-              <div
-                className="flex items-center gap-2"
-                onClick={(e) => e.stopPropagation()}
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {canUpdateStatus && (
+              <Button
+                onClick={() => handleStatusUpdate(nextStatus)}
+                size="sm"
+                className="text-xs"
               >
-                {canUpdateStatus && (
+                Mark as {getStatusText(nextStatus)}
+              </Button>
+            )}
+
+            {currentRole === UserRole.DRIVER &&
+              trip.driverId === currentUserId &&
+              trip.status === TripStatus.DELIVERED &&
+              trip.proofOfDelivery.length === 0 && (
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={uploading === trip.id}
+                  />
                   <Button
-                    onClick={() => handleStatusUpdate(nextStatus)}
+                    variant="outline"
                     size="sm"
+                    disabled={uploading === trip.id}
                     className="text-xs"
                   >
-                    Mark as {getStatusText(nextStatus)}
+                    {uploading === trip.id ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-1 h-3 w-3" />
+                        Upload POD
+                      </>
+                    )}
                   </Button>
+                </div>
+              )}
+          </div>
+        </div>
+
+        {/* Accordion for Details */}
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value={trip.id} className="border-none">
+            <AccordionTrigger className="hover:no-underline py-2 text-sm text-muted-foreground">
+              <span>View Details</span>
+            </AccordionTrigger>
+
+            <AccordionContent className="px-6 pb-4">
+              {/* Detailed Trip Information */}
+              <div className="space-y-6">
+                {/* Mobile Route Info */}
+                <div className="sm:hidden space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Route:</span>
+                    <span className="text-muted-foreground">
+                      {trip.origin} → {trip.destination}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Cargo:</span>
+                    <span className="text-muted-foreground">
+                      {trip.cargoType}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Driver:</span>
+                    <span className="text-muted-foreground">
+                      {trip.driver.name}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Trip Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-foreground">
+                      Trip Details
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge
+                          variant={getStatusColor(trip.status) as any}
+                          className="text-xs"
+                        >
+                          {getStatusText(trip.status)}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Trip ID:</span>
+                        <span className="font-mono text-xs">#{trip.id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Created:</span>
+                        <span className="text-xs">
+                          {new Date(trip.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Updated:</span>
+                        <span className="text-xs">
+                          {new Date(trip.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-foreground">
+                      Driver Information
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="font-medium">{trip.driver.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="text-xs text-muted-foreground">
+                          {trip.driver.email}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          Driver ID:
+                        </span>
+                        <span className="font-mono text-xs">
+                          #{trip.driverId}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proof of Delivery Section */}
+                {trip.proofOfDelivery.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                      <Camera className="h-4 w-4" />
+                      Proof of Delivery
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {trip.proofOfDelivery.map((pod) => (
+                        <div key={pod.id} className="relative group">
+                          <img
+                            src={
+                              imageError[pod.id]
+                                ? getCargoPlaceholder(trip.cargoType)
+                                : pod.imageUrl
+                            }
+                            alt={`Proof of delivery for ${trip.cargoType}`}
+                            className="w-full aspect-square object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                            onError={() =>
+                              setImageError((prev) => ({
+                                ...prev,
+                                [pod.id]: true,
+                              }))
+                            }
+                            onClick={() => window.open(pod.imageUrl, "_blank")}
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
+                            <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                              Click to view
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground truncate">
+                            {pod.fileName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(pod.uploadedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
 
-                {currentRole === UserRole.DRIVER &&
-                  trip.driverId === currentUserId &&
-                  trip.status === TripStatus.DELIVERED &&
-                  trip.proofOfDelivery.length === 0 && (
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        disabled={uploading === trip.id}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={uploading === trip.id}
-                        className="text-xs"
-                      >
-                        {uploading === trip.id ? (
-                          <>
-                            <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="mr-1 h-3 w-3" />
-                            Upload POD
-                          </>
-                        )}
-                      </Button>
+                {/* POD Upload Reminder */}
+                {trip.status === TripStatus.DELIVERED &&
+                  trip.proofOfDelivery.length === 0 &&
+                  currentRole === UserRole.DRIVER &&
+                  trip.driverId === currentUserId && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-yellow-800">
+                        <Camera className="h-4 w-4" />
+                        <span className="font-medium text-sm">
+                          Proof of Delivery Required
+                        </span>
+                      </div>
+                      <p className="text-xs text-yellow-700 mt-1">
+                        Please upload proof of delivery to complete this trip.
+                      </p>
                     </div>
                   )}
               </div>
-            </div>
-          </AccordionTrigger>
-
-          <AccordionContent className="px-6 pb-4">
-            {/* Detailed Trip Information */}
-            <div className="space-y-6">
-              {/* Mobile Route Info */}
-              <div className="sm:hidden space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Route:</span>
-                  <span className="text-muted-foreground">
-                    {trip.origin} → {trip.destination}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Cargo:</span>
-                  <span className="text-muted-foreground">
-                    {trip.cargoType}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Driver:</span>
-                  <span className="text-muted-foreground">
-                    {trip.driver.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Trip Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-foreground">
-                    Trip Details
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Status:</span>
-                      <Badge
-                        variant={getStatusColor(trip.status) as any}
-                        className="text-xs"
-                      >
-                        {getStatusText(trip.status)}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Trip ID:</span>
-                      <span className="font-mono text-xs">#{trip.id}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Created:</span>
-                      <span className="text-xs">
-                        {new Date(trip.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Updated:</span>
-                      <span className="text-xs">
-                        {new Date(trip.updatedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-foreground">
-                    Driver Information
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Name:</span>
-                      <span className="font-medium">{trip.driver.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="text-xs text-muted-foreground">
-                        {trip.driver.email}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Driver ID:</span>
-                      <span className="font-mono text-xs">
-                        #{trip.driverId}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Proof of Delivery Section */}
-              {trip.proofOfDelivery.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    <Camera className="h-4 w-4" />
-                    Proof of Delivery
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {trip.proofOfDelivery.map((pod) => (
-                      <div key={pod.id} className="relative group">
-                        <img
-                          src={
-                            imageError[pod.id]
-                              ? getCargoPlaceholder(trip.cargoType)
-                              : pod.imageUrl
-                          }
-                          alt={`Proof of delivery for ${trip.cargoType}`}
-                          className="w-full aspect-square object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity"
-                          onError={() =>
-                            setImageError((prev) => ({
-                              ...prev,
-                              [pod.id]: true,
-                            }))
-                          }
-                          onClick={() => window.open(pod.imageUrl, "_blank")}
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                            Click to view
-                          </span>
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground truncate">
-                          {pod.fileName}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(pod.uploadedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* POD Upload Reminder */}
-              {trip.status === TripStatus.DELIVERED &&
-                trip.proofOfDelivery.length === 0 &&
-                currentRole === UserRole.DRIVER &&
-                trip.driverId === currentUserId && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-yellow-800">
-                      <Camera className="h-4 w-4" />
-                      <span className="font-medium text-sm">
-                        Proof of Delivery Required
-                      </span>
-                    </div>
-                    <p className="text-xs text-yellow-700 mt-1">
-                      Please upload proof of delivery to complete this trip.
-                    </p>
-                  </div>
-                )}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 }
